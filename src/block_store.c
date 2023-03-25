@@ -8,9 +8,14 @@
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
 
+typedef struct block_store{
+    char* data[BLOCK_STORE_AVAIL_BLOCKS][BLOCK_STORE_AVAIL_BLOCKS];
+    bitmap_t* bitmap;
+} block_store_t;
+
 block_store_t *block_store_create()
 {
-    block_store_t *block = malloc(sizeof(block_store));
+    block_store_t *block = malloc(sizeof(block_store_t*));
     if(block == NULL){
         return NULL;
     }
@@ -40,9 +45,15 @@ size_t block_store_allocate(block_store_t *const bs)
 
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    return false;
+    if(bs == NULL || block_id > BLOCK_STORE_AVAIL_BLOCKS) return 0;
+
+    if(bitmap_test(bs->bitmap, block_id) == 1) return 0; //if the bit is set, terminate
+
+    bitmap_set(bs->bitmap, block_id);
+
+    if(bitmap_test(bs->bitmap, block_id) == 0) return 0; //if the bit is not set, terminate
+
+    return 1;
 }
 
 void block_store_release(block_store_t *const bs, const size_t block_id)
