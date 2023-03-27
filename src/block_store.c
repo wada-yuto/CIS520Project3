@@ -96,35 +96,36 @@ size_t block_store_get_total_blocks()
 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-
+    // error checking
     if(bs == NULL) return 0;
     if(block_id == NULL) return 0;
     if(buffer == NULL) return 0;
-
-    // how to read from block_store
-    // how to find correct space in block store
-    // how to put buffer data into bs
     
-    int i = 0;
-    while(i != NULL) // not i here, the data below
+    // read data from block_store into buffer
+    size_t i = 0;
+    while((*data)[block_id][i] != NULL)
     {
-       // (*data)[block_id] <- check this for null value before loop
-
-        buffer+i = (*data)[block_id][i]; // <- first draft, double check this
+        (*buffer)[i] = (*data)[block_id][i];
     }
 
-    return 0;
+    return i;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
-{
-    UNUSED(bs);
-    UNUSED(block_id);
-    UNUSED(buffer);
-    return 0;
+{    
+    // error checking
+    if(bs == NULL) return 0;
+    if(block_id == NULL) return 0;
+    if(buffer == NULL) return 0;
+    
+    // read data from buffer into block_store
+    size_t i = 0;
+    while((*data)[block_id][i] != NULL)
+    {
+	(*data)[block_id][i] = (*buffer)[i];
+    }
+
+    return i;
 }
 
 block_store_t *block_store_deserialize(const char *const filename)
