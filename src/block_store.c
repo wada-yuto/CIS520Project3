@@ -99,6 +99,23 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     UNUSED(bs);
     UNUSED(block_id);
     UNUSED(buffer);
+
+    if(bs == NULL) return 0;
+    if(block_id == NULL) return 0;
+    if(buffer == NULL) return 0;
+
+    // how to read from block_store
+    // how to find correct space in block store
+    // how to put buffer data into bs
+    
+    int i = 0;
+    while(i != NULL) // not i here, the data below
+    {
+       // (*data)[block_id] <- check this for null value before loop
+
+        buffer+i = (*data)[block_id][i]; // <- first draft, double check this
+    }
+
     return 0;
 }
 
