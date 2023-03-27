@@ -58,7 +58,9 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
+    //checks if the block store is null
     if(bs != NULL){
+        //resets the bit representing the selected block
         bitmap_reset(bs->bitmap, block_id);
     }
     return;
@@ -66,18 +68,29 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-    UNUSED(bs);
+    //checks if the block store is null
+    if(bs != NULL) {
+        //returns the total number of set bits the the block store's bitmap
+        return bitmap_total_set(bs->bitmap);
+    }
+    //returns zero if the block store is null
     return 0;
 }
 
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-    UNUSED(bs);
-    return 0;
+    //checks if the block store is null
+    if(bs != NULL) {
+        //returns the number of unset bits in the block store's bitmap by subtracting the set bits from the total bits
+        return BLOCK_STORE_AVAIL_BLOCKS - bitmap_total_set(bs->bitmap);
+    }
+    //returns zero if the block store is null
+    return 0; 
 }
 
 size_t block_store_get_total_blocks()
 {
+    //returns the constant that represents the total blocks in the block store
     return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
