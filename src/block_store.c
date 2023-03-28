@@ -84,7 +84,7 @@ size_t block_store_get_used_blocks(const block_store_t *const bs)
         return bitmap_total_set(bs->bitmap);
     }
     //returns zero if the block store is null
-    return 0;
+    return SIZE_MAX;
 }
 
 size_t block_store_get_free_blocks(const block_store_t *const bs)
@@ -95,7 +95,7 @@ size_t block_store_get_free_blocks(const block_store_t *const bs)
         return BLOCK_STORE_AVAIL_BLOCKS - bitmap_total_set(bs->bitmap);
     }
     //returns zero if the block store is null
-    return 0; 
+    return SIZE_MAX; 
 }
 
 //Yuto Wada
