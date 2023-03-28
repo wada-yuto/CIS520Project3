@@ -13,6 +13,7 @@ typedef struct block_store{
     bitmap_t* bitmap;
 } block_store_t;
 
+//Yuto Wada
 block_store_t *block_store_create()
 {
     block_store_t *block = malloc(sizeof(block_store_t));
@@ -23,26 +24,34 @@ block_store_t *block_store_create()
     return block;
 }
 
+//Yuto Wada
 void block_store_destroy(block_store_t *const bs)
 {
-    bitmap_destroy(bs->bitmap);
-    free(bs);
-    return;
+    if (bs != NULL){
+        bitmap_destroy(bs->bitmap);
+        free(bs);
+        return;  
+    }
 }
+
+//Yuto Wada
 size_t block_store_allocate(block_store_t *const bs)
 {
     if (bs == NULL){
-        return BLOCK_STORE_AVAIL_BLOCKS;
+        return SIZE_MAX;
     }
 
     size_t adressZero = bitmap_ffz(bs->bitmap);
 
-    if (adressZero == SIZE_MAX || adressZero == BLOCK_STORE_AVAIL_BLOCKS) return BLOCK_SIZE_BYTES;
+    if (adressZero == SIZE_MAX || adressZero == BLOCK_STORE_AVAIL_BLOCKS) {
+        return SIZE_MAX;
+    }
 
     bitmap_set(bs->bitmap, adressZero); //set first zero
     return adressZero;
 }
 
+//Yuto Wada
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
     if(bs == NULL || block_id > BLOCK_STORE_AVAIL_BLOCKS) return 0;
@@ -56,6 +65,7 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
     return 1;
 }
 
+//Yuto Wada
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
     //checks if the block store is null
@@ -88,12 +98,14 @@ size_t block_store_get_free_blocks(const block_store_t *const bs)
     return 0; 
 }
 
+//Yuto Wada
 size_t block_store_get_total_blocks()
 {
     //returns the constant that represents the total blocks in the block store
     return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
+//Micah 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
     // error checking
@@ -111,6 +123,7 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     return i;
 }
 
+//Micah
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {    
     // error checking
@@ -128,6 +141,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     return i;
 }
 
+//Micah
 block_store_t *block_store_deserialize(const char *const filename)
 {
     UNUSED(filename);
