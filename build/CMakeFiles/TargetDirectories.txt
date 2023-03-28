@@ -1,0 +1,5 @@
+/homes/roening/CIS520/hw3/CIS520Project3/build/CMakeFiles/rebuild_cache.dir
+/homes/roening/CIS520/hw3/CIS520Project3/build/CMakeFiles/edit_cache.dir
+/homes/roening/CIS520/hw3/CIS520Project3/build/CMakeFiles/hw3_test.dir
+/homes/roening/CIS520/hw3/CIS520Project3/build/CMakeFiles/block_store.dir
+/homes/roening/CIS520/hw3/CIS520Project3/build/CMakeFiles/bitmap.dir

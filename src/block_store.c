@@ -98,14 +98,14 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
 {
     // error checking
     if(bs == NULL) return 0;
-    if(block_id == NULL) return 0;
+    if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
     // read data from block_store into buffer
     size_t i = 0;
-    while((*data)[block_id][i] != NULL)
+    while(i < BLOCK_STORE_AVAIL_BLOCKS)
     {
-        (*buffer)[i] = (*data)[block_id][i];
+        ((char*)buffer)[i] = (*(bs->data))[block_id][i];
     }
 
     return i;
@@ -115,14 +115,14 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 {    
     // error checking
     if(bs == NULL) return 0;
-    if(block_id == NULL) return 0;
+    if(block_id> BLOCK_STORE_NUM_BLOCKS) return 0;
     if(buffer == NULL) return 0;
     
     // read data from buffer into block_store
     size_t i = 0;
-    while((*data)[block_id][i] != NULL)
+    while(i < BLOCK_STORE_AVAIL_BLOCKS)
     {
-	(*data)[block_id][i] = (*buffer)[i];
+        (*(bs->data))[block_id][i] = ((char*)buffer)[i];
     }
 
     return i;
