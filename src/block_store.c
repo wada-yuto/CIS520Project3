@@ -19,14 +19,17 @@ block_store_t *block_store_create()
 {
     int errornum;
 
+    //Allocate memory for the block that is being created
     block_store_t *block = malloc(sizeof(block_store_t));
     if(block == NULL){
+        //errno number stuff
         errornum = errno;
         fprintf(stderr, "Value of errno: %d\n", errno);
         perror("Error printed by perror");
         fprintf(stderr, "Error Null Check: %s\n", strerror( errornum ));
         return NULL;
     }
+    //Create a bitmap with 256 - 1 as the available space
     block->bitmap = bitmap_create(BLOCK_STORE_AVAIL_BLOCKS);
     return block;
 }
@@ -44,6 +47,7 @@ void block_store_destroy(block_store_t *const bs)
         return;
     }
 
+    //If the parameter is not null, destroy the bitmap that is allocated and free the memory
     bitmap_destroy(bs->bitmap);
     free(bs);
     return; 
@@ -52,30 +56,43 @@ void block_store_destroy(block_store_t *const bs)
 //Yuto Wada
 size_t block_store_allocate(block_store_t *const bs)
 {
+    //If bs is NULL, return SIZE_MAX (Stated in the test cases)
     if (bs == NULL){
         return SIZE_MAX;
     }
 
+    //Find where the first zero occurs
     size_t adressZero = bitmap_ffz(bs->bitmap);
+
 
     if (adressZero == SIZE_MAX || adressZero == BLOCK_STORE_AVAIL_BLOCKS) {
         return SIZE_MAX;
     }
 
-    bitmap_set(bs->bitmap, adressZero); //set first zero
+    //Set the bs to where the first zero is.
+    bitmap_set(bs->bitmap, adressZero);
     return adressZero;
 }
 
 //Yuto Wada
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-    if(bs == NULL || block_id > BLOCK_STORE_AVAIL_BLOCKS) return 0;
+    if(bs == NULL || (block_id > BLOCK_STORE_AVAIL_BLOCKS)) {
+        return 0;
+    }
 
-    if(bitmap_test(bs->bitmap, block_id) == 1) return 0; //if the bit is set, terminate
+    //If the bit is already set, exit
+    if(bitmap_test(bs->bitmap, block_id) == 1) {
+        return 0; 
+    }
 
+    //Set the bit to be the requested block
     bitmap_set(bs->bitmap, block_id);
 
-    if(bitmap_test(bs->bitmap, block_id) == 0) return 0; //if the bit is not set, terminate
+    //If the bit is not used or set, something went wrong
+    if(bitmap_test(bs->bitmap, block_id) == 0) {
+        return 0; 
+    }
 
     return 1;
 }
