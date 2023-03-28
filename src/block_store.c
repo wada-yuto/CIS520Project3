@@ -14,10 +14,17 @@ typedef struct block_store{
 } block_store_t;
 
 //Yuto Wada
+//Resources for errno.h: https://www.tutorialspoint.com/cprogramming/c_error_handling.htm
 block_store_t *block_store_create()
 {
+    int errornum;
+
     block_store_t *block = malloc(sizeof(block_store_t));
     if(block == NULL){
+        errornum = errno;
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror");
+        fprintf(stderr, "Error Null Check: %s\n", strerror( errornum ));
         return NULL;
     }
     block->bitmap = bitmap_create(BLOCK_STORE_AVAIL_BLOCKS);
@@ -27,11 +34,19 @@ block_store_t *block_store_create()
 //Yuto Wada
 void block_store_destroy(block_store_t *const bs)
 {
-    if (bs != NULL){
-        bitmap_destroy(bs->bitmap);
-        free(bs);
-        return;  
+    int errornum;
+
+    if (bs == NULL){
+        errornum = errno;
+        fprintf(stderr, "Value of errno: %d\n", errno);
+        perror("Error printed by perror");
+        fprintf(stderr, "Error Null Check: %s\n", strerror( errornum )); 
+        return;
     }
+
+    bitmap_destroy(bs->bitmap);
+    free(bs);
+    return; 
 }
 
 //Yuto Wada
