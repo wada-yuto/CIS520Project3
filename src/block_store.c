@@ -15,7 +15,7 @@ typedef struct block_store{
 
 block_store_t *block_store_create()
 {
-    block_store_t *block = malloc(sizeof(block_store_t*));
+    block_store_t *block = malloc(sizeof(block_store_t));
     if(block == NULL){
         return NULL;
     }
