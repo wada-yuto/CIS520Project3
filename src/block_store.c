@@ -114,12 +114,12 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
-    // read data from block_store into buffer
-    
+    // read data from block_store into buffer   
     size_t i = 0;
-    while ( *(bs->data)[block_id][i] != ' ' )
+    while ( i < BLOCK_SIZE_BYTES )
     {
-        memcpy(buffer+i, (bs->data)[block_id][i], 8);
+        strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
+	i++;
     }
 
     return i;
@@ -130,28 +130,30 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 {    
     // error checking
     if(bs == NULL) return 0;
-    if(block_id> BLOCK_STORE_NUM_BLOCKS) return 0;
+    if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0;
     if(buffer == NULL) return 0;
-   
-    /* 
-    // read data from buffer into block_store
+  
+    // read data from block_store into buffer 
     size_t i = 0;
-    while(((char*)buffer)[i] != NULL)
+    while ( i < BLOCK_SIZE_BYTES )
     {
-        (*(bs->data))[block_id][i] = ((char*)buffer)[i];
+        (bs->data)[block_id][i] = calloc(1, sizeof(char));
+	strncpy( (bs->data)[block_id][i], buffer+i, (size_t)1 );	
+	i++;
     }
 
     return i;
-    */
-
-    //memcpy((bs->data)[block_id][0], buffer, 1);
-
-    return 1;
 }
 
 //Micah
 block_store_t *block_store_deserialize(const char *const filename)
 {
+
+    UNUSED(filename);
+    
+    return 0;
+
+    /*
     //checks if the filename is null
     if(filename == NULL) return NULL;
 
@@ -187,10 +189,18 @@ block_store_t *block_store_deserialize(const char *const filename)
     } 
 
     return bs;
+    */
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
+
+    UNUSED(bs);
+    UNUSED(filename);
+
+    return 0;
+
+    /*
     //checks if the block store is null
     if(bs == NULL) return 0;
     //checks if the filename is null
@@ -227,4 +237,6 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 
     //return the total number of bytes written to files
     return total_bytes;
+    */
+
 }
