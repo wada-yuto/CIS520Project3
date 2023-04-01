@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "bitmap.h"
 #include "block_store.h"
+#include <unistd.h>
+#include <fcntl.h>
 // include more if you need
 
 // You might find this handy.  I put it around unused parameters, but you should
@@ -134,7 +136,7 @@ block_store_t *block_store_deserialize(const char *const filename)
     if(filename == NULL) return NULL;
 
     //open the file 
-    int fd = open(filename);
+    int fd = open(filename, O_RDONLY);
     //check if there was an error while opening the file
     if(fd == -1) {
         return NULL;
@@ -175,10 +177,10 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     if(filename == NULL) return 0;
 
     //open the file 
-    int fd = open(filename);
+    int fd = open(filename, O_WRONLY);
     //check if there was an error while opening the file
     if(fd == -1) {
-        return NULL;
+        return 0;
     }
 
     //set the buffer
