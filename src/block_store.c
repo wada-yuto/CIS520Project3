@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "bitmap.h"
 #include "block_store.h"
+#include <string.h>
 // include more if you need
 
 // You might find this handy.  I put it around unused parameters, but you should
@@ -114,10 +115,11 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     if(buffer == NULL) return 0;
     
     // read data from block_store into buffer
+    
     size_t i = 0;
-    while(i < BLOCK_STORE_AVAIL_BLOCKS)
+    while ( *(bs->data)[block_id][i] != ' ' )
     {
-        ((char*)buffer)[i] = (*(bs->data))[block_id][i];
+        memcpy(buffer+i, (bs->data)[block_id][i], 8);
     }
 
     return i;
@@ -130,15 +132,21 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     if(bs == NULL) return 0;
     if(block_id> BLOCK_STORE_NUM_BLOCKS) return 0;
     if(buffer == NULL) return 0;
-    
+   
+    /* 
     // read data from buffer into block_store
     size_t i = 0;
-    while(i < BLOCK_STORE_AVAIL_BLOCKS)
+    while(((char*)buffer)[i] != NULL)
     {
         (*(bs->data))[block_id][i] = ((char*)buffer)[i];
     }
 
     return i;
+    */
+
+    //memcpy((bs->data)[block_id][0], buffer, 1);
+
+    return 1;
 }
 
 //Micah
