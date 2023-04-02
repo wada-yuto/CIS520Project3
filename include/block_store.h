@@ -105,6 +105,11 @@ extern "C"
 	///
 	block_store_t *block_store_deserialize(const char *const filename);
 
+	/// @brief Checks if the buffer is zeroed out
+	/// @param buf the buffer being checked
+	/// @return true is the buffer is all zeroes
+	bool is_zeroed(void* buf);
+
 	///
 	/// Writes the entirety of the BS device to file, overwriting it if it exists - for grads/bonus
 	/// \param bs BS device

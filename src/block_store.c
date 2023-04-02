@@ -116,19 +116,19 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
-    // // read data from block_store into buffer   
-    // size_t i = 0;
-    // while ( i < BLOCK_SIZE_BYTES )
-    // {
-    //     strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
-    //     printf("i: %ld\n", i);
-	// i++;
-    // }
+    // read data from block_store into buffer   
+    size_t i = 0;
+    while ( i < BLOCK_SIZE_BYTES )
+    {
+        strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
+        //printf("i: %ld\n", i);
+	i++;
+    }
 
-    // return i;
+    return i;
 
-    memcpy(buffer, bs->data[block_id],BLOCK_STORE_AVAIL_BLOCKS); //copy block id into buffer
-    return BLOCK_STORE_AVAIL_BLOCKS;
+    // memcpy(buffer, bs->data[block_id],BLOCK_STORE_AVAIL_BLOCKS); //copy block id into buffer
+    // return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
 //Micah
@@ -151,7 +151,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     return i;
 }
 
-//Micah
+//Katia
 block_store_t *block_store_deserialize(const char *const filename)
 {
     //checks if the filename is null
@@ -169,6 +169,12 @@ block_store_t *block_store_deserialize(const char *const filename)
     //checks if the block store was successfully created
     if(bs == NULL) return NULL;
 
+    //import bitmap from file
+    // void* bitmap_buf = malloc(sizeof(uint8_t));
+    // read(fd, bitmap_buf, sizeof(uint8_t));
+    // bitmap_t* imported_bitmap = bitmap_import(sizeof(uint8_t), bitmap_buf);
+    // bs->bitmap = imported_bitmap;
+
     //initialze buffer
     void* buf[BLOCK_STORE_NUM_BLOCKS];
     
@@ -178,13 +184,22 @@ block_store_t *block_store_deserialize(const char *const filename)
         size_t bytes_read = read(fd, buf, BLOCK_STORE_NUM_BLOCKS); 
         //check if the read was successful
         if(bytes_read == 0) {
-            break;
-        }
-        //writes the buffer for the block into the block store
-        size_t num_bytes = block_store_write(bs, i, buf);
-        //checks if the block store is correctly written to
-        if(num_bytes == 0) {
             return NULL;
+        }
+        //printf("%p\n", buf);
+        if(is_zeroed(buf)) {
+            printf("is being used\n");
+            //writes the buffer for the block into the block store
+            size_t num_bytes = block_store_write(bs, i, buf);
+            //checks if the block store is correctly written to
+            if(num_bytes == 0) {
+                return NULL;
+            }
+            //mark block as used
+            bool requested = block_store_request(bs, i);
+            if(!requested) {
+                return NULL;
+            }
         }
     } 
 
@@ -192,6 +207,14 @@ block_store_t *block_store_deserialize(const char *const filename)
     close(fd);
 
     return bs;
+}
+
+bool is_zeroed(void* buf) {
+    //checks if the buffer is filled with zeroes
+    for(size_t j = 0; j < BLOCK_STORE_NUM_BLOCKS; j++) {
+            if(buf+j != 0) return false;
+    }
+    return true;
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
@@ -214,19 +237,24 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     void* buf = malloc(BLOCK_STORE_NUM_BLOCKS);
     size_t total_bytes = 0; //initialize total bytes written to zero
 
+    //write bitmap to file
+    // void* bitmap_buf = malloc(sizeof(uint8_t));
+    // bitmap_export(bs->bitmap);
+    // write(fd, bitmap_buf, sizeof(uint8_t));
+
     //writes each block to the file
     for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
+        //write the contents of the used blocks
         if(bitmap_test(bs->bitmap, i)) {
+            //printf("%ld is set\n", i);
             //read block into buffer
             size_t num_bytes = block_store_read(bs, i, buf);
-            //printf("Read: %ld\n", num_bytes);
             //check if buffer was correctly written to
             if(num_bytes == 0) {
                 return 0;
             }
             //write buffer of block to file
             size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
-            //printf("Added bytes: %ld\n", bytes_written);
             //check if the file was correctly written to
             if(bytes_written == 0) {
                 return 0;
@@ -234,7 +262,12 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
             //add the bytes written for the block to the total bytes written
             total_bytes += bytes_written;
         }
+        //write a placeholder for blocks that are unused
         else {
+            //printf("%ld is placeholder\n", i);
+            void* placeholder_buffer = malloc(BLOCK_STORE_NUM_BLOCKS);
+            memset(placeholder_buffer, 0, BLOCK_STORE_NUM_BLOCKS);
+            write(fd, placeholder_buffer, BLOCK_STORE_NUM_BLOCKS);
             total_bytes += 256;
         }
     }
