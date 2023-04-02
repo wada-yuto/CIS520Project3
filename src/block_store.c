@@ -150,12 +150,6 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 //Micah
 block_store_t *block_store_deserialize(const char *const filename)
 {
-
-    UNUSED(filename);
-    
-    return 0;
-
-    /*
     //checks if the filename is null
     if(filename == NULL) return NULL;
 
@@ -184,61 +178,67 @@ block_store_t *block_store_deserialize(const char *const filename)
         }
         //writes the buffer for the block into the block store
         size_t num_bytes = block_store_write(bs, i, buf);
+        printf("Added bytes: %ld\n", num_bytes);
         //checks if the block store is correctly written to
         if(num_bytes == 0) {
             return NULL;
         }
     } 
 
+    //close the file
+    close(fd);
+
     return bs;
-    */
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-
-    UNUSED(bs);
-    UNUSED(filename);
-
-    return 0;
-
-    /*
     //checks if the block store is null
     if(bs == NULL) return 0;
     //checks if the filename is null
     if(filename == NULL) return 0;
 
     //open the file 
-    int fd = open(filename, O_WRONLY);
+    int fd = open(filename, O_WRONLY | O_CREAT, S_IRWXU);
     //check if there was an error while opening the file
     if(fd == -1) {
+        perror("Error: ");
+        printf("failed to open file\n");
         return 0;
     }
+    printf("Opened file\n");
 
     //set the buffer
     void* buf[BLOCK_STORE_NUM_BLOCKS];
+    printf("created buffer\n");
     size_t total_bytes = 0; //initialize total bytes written to zero
 
     //writes each block to the file
     for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
         //read block into buffer
         size_t num_bytes = block_store_read(bs, i, buf);
+        printf("Read: %ld\n", num_bytes);
         //check if buffer was correctly written to
         if(num_bytes == 0) {
+            printf("read wrong\n");
             return 0;
         }
         //write buffer of block to file
         size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
+        printf("Added bytes: %ld\n", bytes_written);
         //check if the file was correctly written to
         if(bytes_written == 0) {
+            printf("write wrong\n");
             return 0;
         }
         //add the bytes written for the block to the total bytes written
         total_bytes += bytes_written;
     }
 
+    //close the file
+    close(fd);
+
+    printf("Total bytes: %ld\n", total_bytes);
     //return the total number of bytes written to files
     return total_bytes;
-    */
-
 }
