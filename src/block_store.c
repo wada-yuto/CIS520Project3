@@ -199,9 +199,10 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     if(filename == NULL) return 0;
 
     //open the file 
-    int fd = open(filename, O_WRONLY | O_CREAT);
+    int fd = open(filename, O_WRONLY | O_CREAT, S_IRWXU);
     //check if there was an error while opening the file
     if(fd == -1) {
+        perror("Error: ");
         printf("failed to open file\n");
         return 0;
     }
