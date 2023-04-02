@@ -116,15 +116,19 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
-    // read data from block_store into buffer   
-    size_t i = 0;
-    while ( i < BLOCK_SIZE_BYTES )
-    {
-        strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
-	i++;
-    }
+    // // read data from block_store into buffer   
+    // size_t i = 0;
+    // while ( i < BLOCK_SIZE_BYTES )
+    // {
+    //     strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
+    //     printf("i: %ld\n", i);
+	// i++;
+    // }
 
-    return i;
+    // return i;
+
+    memcpy(buffer, bs->data[block_id],BLOCK_STORE_AVAIL_BLOCKS); //copy block id into buffer
+    return BLOCK_STORE_AVAIL_BLOCKS;
 }
 
 //Micah
@@ -174,11 +178,10 @@ block_store_t *block_store_deserialize(const char *const filename)
         size_t bytes_read = read(fd, buf, BLOCK_STORE_NUM_BLOCKS); 
         //check if the read was successful
         if(bytes_read == 0) {
-            return NULL;
+            break;
         }
         //writes the buffer for the block into the block store
         size_t num_bytes = block_store_write(bs, i, buf);
-        printf("Added bytes: %ld\n", num_bytes);
         //checks if the block store is correctly written to
         if(num_bytes == 0) {
             return NULL;
@@ -206,39 +209,39 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
         printf("failed to open file\n");
         return 0;
     }
-    printf("Opened file\n");
 
     //set the buffer
-    void* buf[BLOCK_STORE_NUM_BLOCKS];
-    printf("created buffer\n");
+    void* buf = malloc(BLOCK_STORE_NUM_BLOCKS);
     size_t total_bytes = 0; //initialize total bytes written to zero
 
     //writes each block to the file
     for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
-        //read block into buffer
-        size_t num_bytes = block_store_read(bs, i, buf);
-        printf("Read: %ld\n", num_bytes);
-        //check if buffer was correctly written to
-        if(num_bytes == 0) {
-            printf("read wrong\n");
-            return 0;
+        if(bitmap_test(bs->bitmap, i)) {
+            //read block into buffer
+            size_t num_bytes = block_store_read(bs, i, buf);
+            //printf("Read: %ld\n", num_bytes);
+            //check if buffer was correctly written to
+            if(num_bytes == 0) {
+                return 0;
+            }
+            //write buffer of block to file
+            size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
+            //printf("Added bytes: %ld\n", bytes_written);
+            //check if the file was correctly written to
+            if(bytes_written == 0) {
+                return 0;
+            }
+            //add the bytes written for the block to the total bytes written
+            total_bytes += bytes_written;
         }
-        //write buffer of block to file
-        size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
-        printf("Added bytes: %ld\n", bytes_written);
-        //check if the file was correctly written to
-        if(bytes_written == 0) {
-            printf("write wrong\n");
-            return 0;
+        else {
+            total_bytes += 256;
         }
-        //add the bytes written for the block to the total bytes written
-        total_bytes += bytes_written;
     }
 
     //close the file
     close(fd);
 
-    printf("Total bytes: %ld\n", total_bytes);
     //return the total number of bytes written to files
     return total_bytes;
 }
