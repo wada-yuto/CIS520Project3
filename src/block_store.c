@@ -2,9 +2,11 @@
 #include <stdint.h>
 #include "bitmap.h"
 #include "block_store.h"
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include <string.h>
 // include more if you need
 
@@ -151,6 +153,7 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
+
     // // read data from block_store into buffer   
     // // size_t i = 0;
     // // while ( i < BLOCK_SIZE_BYTES )
@@ -164,6 +167,7 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
     // return BLOCK_STORE_NUM_BLOCKS;
 
     //2D array looks like
+
 
     // {   A[0]{0, 1, 2, 3},
     //     A[1]{3, 2, 1, 0},
@@ -184,6 +188,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
     if(buffer == NULL) return 0;
   
     // read data from block_store into buffer 
+
     // size_t i = 0;
     // while ( i < BLOCK_SIZE_BYTES )
     // {
@@ -192,6 +197,7 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 	// i++;
     // }
     memcpy(bs->data[block_id], buffer, BLOCK_SIZE_BYTES); 
+
 
     return BLOCK_SIZE_BYTES;
 }
@@ -250,25 +256,31 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
     int fd = open(filename, O_WRONLY | O_CREAT, S_IRWXU);
     //check if there was an error while opening the file
     if(fd == -1) {
+
         return 0;
     }
 
     //set the buffer
     void* buf[BLOCK_STORE_NUM_BLOCKS];
+
     size_t total_bytes = 0; //initialize total bytes written to zero
 
     //writes each block to the file
     for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
         //read block into buffer
         size_t num_bytes = block_store_read(bs, i, buf);
+
         //check if buffer was correctly written to
         if(num_bytes == 0) {
+
             return 0;
         }
         //write buffer of block to file
         size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
+
         //check if the file was correctly written to
         if(bytes_written == 0) {
+
             return 0;
         }
         //add the bytes written for the block to the total bytes written
@@ -277,6 +289,7 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
 
     //close the file
     close(fd);
+
 
     //return the total number of bytes written to files
     return total_bytes;
