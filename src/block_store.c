@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include "bitmap.h"
 #include "block_store.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 // include more if you need
 
 // You might find this handy.  I put it around unused parameters, but you should
@@ -140,49 +144,140 @@ size_t block_store_get_total_blocks()
 //Micah 
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-    // error checking
+
+    //https://www.digitalocean.com/community/tutorials/two-dimensional-array-in-c-plus-plus
+    //error checking
     if(bs == NULL) return 0;
     if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0; // double check this
     if(buffer == NULL) return 0;
     
-    // read data from block_store into buffer
-    size_t i = 0;
-    while(i < BLOCK_STORE_AVAIL_BLOCKS)
-    {
-        ((char*)buffer)[i] = (*(bs->data))[block_id][i];
-    }
+    // // read data from block_store into buffer   
+    // // size_t i = 0;
+    // // while ( i < BLOCK_SIZE_BYTES )
+    // // {
+    // //     strncpy( buffer+i, (bs->data)[block_id][i], (size_t)1 );
+	// // i++;
+    // // }
 
-    return i;
+    // memcpy(buffer, (bs->data)[block_id], BLOCK_STORE_NUM_BLOCKS);
+
+    // return BLOCK_STORE_NUM_BLOCKS;
+
+    //2D array looks like
+
+    // {   A[0]{0, 1, 2, 3},
+    //     A[1]{3, 2, 1, 0},
+    //     A[2]{3, 5, 6, 1},
+    //     A[3]{3, 8, 3, 4}  };
+
+    memcpy(buffer, bs->data[block_id], BLOCK_SIZE_BYTES);
+    return BLOCK_SIZE_BYTES;
 }
+
 
 //Micah
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {    
     // error checking
     if(bs == NULL) return 0;
-    if(block_id> BLOCK_STORE_NUM_BLOCKS) return 0;
+    if(block_id > BLOCK_STORE_NUM_BLOCKS) return 0;
     if(buffer == NULL) return 0;
-    
-    // read data from buffer into block_store
-    size_t i = 0;
-    while(i < BLOCK_STORE_AVAIL_BLOCKS)
-    {
-        (*(bs->data))[block_id][i] = ((char*)buffer)[i];
-    }
+  
+    // read data from block_store into buffer 
+    // size_t i = 0;
+    // while ( i < BLOCK_SIZE_BYTES )
+    // {
+    //     (bs->data)[block_id][i] = calloc(1, sizeof(char));
+	// strncpy( (bs->data)[block_id][i], buffer+i, (size_t)1 );	
+	// i++;
+    // }
+    memcpy(bs->data[block_id], buffer, BLOCK_SIZE_BYTES); 
 
-    return i;
+    return BLOCK_SIZE_BYTES;
 }
 
 //Micah
 block_store_t *block_store_deserialize(const char *const filename)
 {
-    UNUSED(filename);
-    return NULL;
+    //checks if the filename is null
+    if(filename == NULL) return NULL;
+
+    //open the file 
+    int fd = open(filename, O_RDONLY);
+    //check if there was an error while opening the file
+    if(fd == -1) {
+        return NULL;
+    }
+
+    //creates the block store
+    block_store_t* bs = block_store_create();
+    //checks if the block store was successfully created
+    if(bs == NULL) return NULL;
+
+    //initialze buffer
+    void* buf[BLOCK_STORE_NUM_BLOCKS];
+    
+    //reads through the array of ints in the file
+    for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
+        //read the current block and reads it into the buffer
+        size_t bytes_read = read(fd, buf, BLOCK_STORE_NUM_BLOCKS); 
+        //check if the read was successful
+        if(bytes_read == 0) {
+            return NULL;
+        }
+        //writes the buffer for the block into the block store
+        size_t num_bytes = block_store_write(bs, i, buf);
+        //checks if the block store is correctly written to
+        if(num_bytes == 0) {
+            return NULL;
+        }
+    } 
+
+    //close the file
+    close(fd);
+
+    return bs;
 }
 
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-    UNUSED(bs);
-    UNUSED(filename);
-    return 0;
+    //checks if the block store is null
+    if(bs == NULL) return 0;
+    //checks if the filename is null
+    if(filename == NULL) return 0;
+
+    //open the file 
+    int fd = open(filename, O_WRONLY | O_CREAT, S_IRWXU);
+    //check if there was an error while opening the file
+    if(fd == -1) {
+        return 0;
+    }
+
+    //set the buffer
+    void* buf[BLOCK_STORE_NUM_BLOCKS];
+    size_t total_bytes = 0; //initialize total bytes written to zero
+
+    //writes each block to the file
+    for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++) {
+        //read block into buffer
+        size_t num_bytes = block_store_read(bs, i, buf);
+        //check if buffer was correctly written to
+        if(num_bytes == 0) {
+            return 0;
+        }
+        //write buffer of block to file
+        size_t bytes_written = write(fd, buf, BLOCK_STORE_NUM_BLOCKS);
+        //check if the file was correctly written to
+        if(bytes_written == 0) {
+            return 0;
+        }
+        //add the bytes written for the block to the total bytes written
+        total_bytes += bytes_written;
+    }
+
+    //close the file
+    close(fd);
+
+    //return the total number of bytes written to files
+    return total_bytes;
 }
